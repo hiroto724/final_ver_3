@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>エンリファ用アプリ</title>
+  <style>
+    body { font-family: Roboto, Arial; background:#f1f3f4; display:flex; justify-content:center; padding:20px; }
+    .form-container { background:#fff; padding:20px; border-radius:8px; max-width:500px; width:100%; box-shadow:0 2px 6px rgba(0,0,0,0.1);}
+    h1 { font-size:1.5em; margin-bottom:20px; }
+    .hidden { display:none; }
+    button { display:block; margin:10px 0; padding:10px; width:100%; background:#4285f4; color:white; border:none; border-radius:4px; font-size:16px; cursor:pointer; }
+    button:hover { background:#3367d6; }
+    .result-box { background:#e8f0fe; padding:15px; border-radius:6px; margin-top:20px; font-size:18px; white-space:pre-line; }
+    input[type="text"] { display:block; width:100%; box-sizing:border-box; padding:10px; font-size:16px; margin-bottom:10px; border-radius:4px; border:1px solid #ccc; }
+  </style>
+
+</head>
+<body>
+  <div class="form-container">
+    <h1>エンリファ用アプリ</h1>
+    <div id="nameInput">
+      <p>メンター名を入力してください：</p>
+      <input type="text" id="userName" placeholder="例：田中太郎" />
+      <button onclick="startDiagnosis()">次へ</button>
+    </div>
+
+    <!-- Aフロー -->
+    <div id="A1" class="hidden">
+      <p>質問A1: その子の学年は？</p>
+      <button onclick="selectA('A-イ')">理系学部生</button>
+      <button onclick="selectA('A-ロ')">理系院生</button>
+      <button onclick="selectA('A-ハ')">文系学部生</button>
+      <button onclick="selectA('A-ニ')">文系院生</button>
+    </div>
+
+    <!-- Bフロー -->
+    <div id="B1" class="hidden"><p>質問B1: 就活もう始めてそう？</p>
+      <button onclick="goToB('B2')">始めてる</button>
+      <button onclick="goToB('B3')">始めてない or わからない</button>
+    </div>
+    <div id="B2" class="hidden"><p>質問B2: サマーインターンの調子どんな感じだった？</p>
+      <button onclick="goToB('B10')">調子◯</button>
+      <button onclick="goToB('B4')">調子× or わからない</button>
+    </div>
+    <div id="B3" class="hidden"><p>質問B3: 就活に対して前向き？？</p>
+      <button onclick="goToB('B5')">Yes</button>
+      <button onclick="goToB('B6')">No</button>
+    </div>
+    <div id="B4" class="hidden"><p>質問B4: エンカレ以外の就活支援団体使ってそう？</p>
+      <button onclick="selectB('B-イ')">Yes</button>
+      <button onclick="selectB('B-ロ')">No or 不明</button>
+    </div>
+    <div id="B5" class="hidden"><p>質問B5: 就活に充てる時間はありそう？</p>
+      <button onclick="goToB('B7')">Yes</button>
+      <button onclick="goToB('B8')">No</button>
+    </div>
+    <div id="B6" class="hidden"><p>質問B6: 進学考えてそう？</p>
+      <button onclick="selectB('B-ハ')">Yes</button>
+      <button onclick="selectB('B-ニ')">No</button>
+    </div>
+    <div id="B7" class="hidden"><p>質問B7: いつ頃就活始めるとか聞いた？</p>
+      <button onclick="selectB('B-ホ')">秋</button>
+      <button onclick="goToB('B9')">冬以降 or 未定</button>
+    </div>
+    <div id="B8" class="hidden"><p>質問B8: 忙しい理由知ってる？</p>
+      <button onclick="selectB('B-ヘ')">学業or研究</button>
+      <button onclick="selectB('B-ト')">バイトやサークル</button>
+    </div>
+    <div id="B9" class="hidden"><p>質問B9: 研究室推薦考えていそう？</p>
+      <button onclick="selectB('B-チ')">Yes</button>
+      <button onclick="selectB('B-リ')">No</button>
+    </div>
+    <div id="B10" class="hidden"><p>質問B10: サマーインターンはどれくらいの企業数いったの？？</p>
+      <button onclick="selectB('B-ヌ')">1~5</button>
+      <button onclick="selectB('B-ル')">5~10</button>
+      <button onclick="selectB('B-ヲ')">それ以上</button>
+    </div>
+
+    <!-- Cフロー -->
+    <div id="C1" class="hidden">
+      <p>質問C1: どんな進路を志望しているかわかる？</p>
+      <button onclick="selectC('C-イ')">産</button>
+      <button onclick="selectC('C-ロ')">官</button>
+      <button onclick="selectC('C-ハ')">学</button>
+      <button onclick="selectC('C-ニ')">院進</button>
+      <button onclick="selectC('C-ホ')">未定 or 不明</button>
+    </div>
+
+    <!-- 結果表示 -->
+    <div id="result" class="hidden">
+      <h2>ここに表示された文章と画像を、エンターから対象者に送ってもらってね！</h2>
+      <div id="resultText" class="result-box"></div>
+    </div>
+
+    <script>
+        let userName = '';
+        let A = '', B = '', C = '';
+        
+        function startDiagnosis() {
+          const input = document.getElementById('userName').value.trim();
+          if (input === '') {
+            alert('名前を入力してください');
+            return;
+          }
+          userName = input;
+          document.getElementById('nameInput').classList.add('hidden');
+          document.getElementById('A1').classList.remove('hidden');
+        }
+        
+        function selectA(attr) {
+          A = attr;
+          document.getElementById('A1').classList.add('hidden');
+          document.getElementById('B1').classList.remove('hidden');
+        }
+        
+        function goToB(nextId) {
+          const allB = ['B1','B2','B3','B4','B5','B6','B7','B8','B9','B10'];
+          allB.forEach(id => document.getElementById(id).classList.add('hidden'));
+          document.getElementById(nextId).classList.remove('hidden');
+        }
+        
+        function selectB(attr) {
+          B = attr;
+          const allB = ['B1','B2','B3','B4','B5','B6','B7','B8','B9','B10'];
+          allB.forEach(id => document.getElementById(id).classList.add('hidden'));
+          document.getElementById('C1').classList.remove('hidden');
+        }
+        
+        function selectC(attr) {
+          C = attr;
+          document.getElementById('C1').classList.add('hidden');
+        
+          //const resultText = `その子の属性は：\n${A} × ${B} × ${C}`;　一旦削除
+          //document.getElementById('resultText').innerText = resultText;
+          document.getElementById('result').classList.remove('hidden');
+        
+          // 官志望（C-ロ）の処理（そのまま残す）
+          if (C === "C-ロ") {
+            const resultBox = document.getElementById('resultText');
+            const msgWrap = document.createElement('div');
+            msgWrap.style.marginTop = '24px';
+        
+            const kokkaLabel = document.createElement('h3');
+            kokkaLabel.textContent = '▶ 国家向けメッセージ';
+            const kokkaArea = document.createElement('textarea');
+            kokkaArea.rows = 8;
+            kokkaArea.style.width = '100%';
+            kokkaArea.style.marginBottom = '8px';
+            kokkaArea.value = `お疲れ～！○○って公務員志望だっけ？
+        今自分就活してて、エンカレッジって言うところで東北大の１個上の人にサポートしてもらってるんだけど、公務員就職するメンターが公務員志望の人向けに公務員試験の相談とか公務員と民間就活の両立とか話してくれるらしい！
+        自分は就活してて一個上の経験者に相談してすごく役立ってるから、せっかくだし話聞いてみてほしい！その先輩から！↓
+        
+        初めまして！エンカレッジというキャリア支援団体でメンターとして活動しております、東北大学4年の深澤と申します！
+        私自身、来年から国家公務員として働くので、試験や就活のことについてサポートできればと思い、この度××さんに協力いただいてご連絡しております！
+        是非一度詳細をお話しできればと思いますので少しだけお時間いただきたいです！ご連絡お待ちしております！`;
+        
+            const btn1 = document.createElement('button');
+            btn1.textContent = '国家向けメッセージをコピー';
+            btn1.onclick = () => {
+              kokkaArea.select();
+              document.execCommand('copy');
+            };
+        
+            const chihouLabel = document.createElement('h3');
+            chihouLabel.textContent = '▶ 地方向けメッセージ';
+            const chihouArea = document.createElement('textarea');
+            chihouArea.rows = 10;
+            chihouArea.style.width = '100%';
+            chihouArea.style.marginBottom = '8px';
+            chihouArea.value = `お疲れ〜！〇〇って公務員志望だよね？
+        今自分、就活でエンカレっていう団体に参加してて、東北大の先輩に色々サポートしてもらってるんだ。
+        実は、公務員志望向けに試験対策・面接カードの書き方・官庁訪問の流れとかを詳しく教えてくれるメンターさんがいるんだよ！
+        キャリアセンターでの面接対策もあるけど、向こうからの一方的なFBしかもらえないらしいんだけど、エンカレならFBに加えて回答を一緒にブラッシュアップできる！
+        自分は就活してて一個上の経験者に相談してすごく役立ってるから、せっかくだし話聞いてみてほしい！その先輩から！↓
+        
+        初めまして！東北大学4年の遠藤と申します。
+        エンカレッジというキャリア支援団体で、公務員志望の学生向けにメンターをしています。
+        
+        私自身、来年から地方公務員として働く予定で、実際に県庁試験の流れ（筆記→集団討論→面接）、官庁訪問での“よく聞かれた質問”、面接カードの添削経験など、体験ベースでお伝えできます。
+        
+        また、民間就活との両立の工夫や、勉強がしんどくなった時の進め方なども実際に経験してきたので、リアルな話ができると思います。
+        
+        1回30分くらいざっくばらんに相談できるので、ぜひ気軽に話してみませんか？😊`;
+        
+            const btn2 = document.createElement('button');
+            btn2.textContent = '地方向けメッセージをコピー';
+            btn2.onclick = () => {
+              chihouArea.select();
+              document.execCommand('copy');
+            };
+        
+            const img = document.createElement('img');
+            img.src = 'https://drive.google.com/uc?export=view&id=1mjguJEfWE8nMVxhtK8xVrLK_0exu1JpA';
+            img.alt = '官志望向けビラ';
+            img.style.width = '100%';
+            img.style.margin = '24px 0';
+            img.style.borderRadius = '12px';
+            img.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
+        
+            const dlLink = document.createElement('a');
+            dlLink.href = 'https://drive.google.com/uc?export=download&id=1mjguJEfWE8nMVxhtK8xVrLK_0exu1JpA';
+            dlLink.textContent = 'ビラ画像（PNG）をダウンロード';
+            dlLink.style.display = 'inline-block';
+            dlLink.style.marginTop = '12px';
+            dlLink.style.color = '#3367d6';
+            dlLink.style.fontWeight = 'bold';
+        
+            msgWrap.appendChild(kokkaLabel);
+            msgWrap.appendChild(kokkaArea);
+            msgWrap.appendChild(btn1);
+            msgWrap.appendChild(document.createElement('hr'));
+            msgWrap.appendChild(chihouLabel);
+            msgWrap.appendChild(chihouArea);
+            msgWrap.appendChild(btn2);
+            msgWrap.appendChild(document.createElement('hr'));
+            msgWrap.appendChild(img);
+            msgWrap.appendChild(dlLink);
+        
+            resultBox.appendChild(msgWrap);
+          }
+        
+          // ▼続き（C-ロ以外の分岐条件、全ビラ）→ パート3で送ります！
+          // ↓↓↓ C-ロ以外の条件付き追加出力ここから ↓↓↓
+    if (C !== "C-ロ") insertExtraContent(userName, A, B, C);
+  
+  // --- 結果をスプレッドシートに送信 ---
+  const finalResult = `${A} × ${B} × ${C}`;
+  saveResultToSheet(userName, finalResult);
+
+  }
+  
+  function insertExtraContent(userName, A, B, C) {
+  const resultBox = document.getElementById('resultText');
+  
+  function createBlock(msg, imgId = null) {
+    const wrap = document.createElement('div');
+    wrap.style.marginTop = '24px';
+    const ta = document.createElement('textarea');
+    ta.rows = 10;
+    ta.style.width = '100%';
+    ta.style.marginBottom = '8px';
+    ta.value = msg//.replace(/○○/g, userName).replace(/〇〇/g, userName).replace(/××/g, userName);
+    wrap.appendChild(ta);
+  
+    
+  
+    const btn = document.createElement('button');
+    btn.textContent = 'メッセージをコピー';
+    btn.onclick = () => { ta.select(); document.execCommand('copy'); };
+    wrap.appendChild(btn);
+  
+    if (imgId) {
+      wrap.appendChild(document.createElement('hr'));
+      const img = document.createElement('img');
+      img.src = `https://drive.google.com/uc?export=view&id=${imgId}`;
+      img.style.width = '100%';
+      img.style.margin = '24px 0';
+      img.style.borderRadius = '12px';
+      img.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
+      wrap.appendChild(img);
+  
+      const link = document.createElement('a');
+      link.href = `https://drive.google.com/uc?export=download&id=${imgId}`;
+      link.textContent = 'ビラ画像（PNG）をダウンロード';
+      link.style.display = 'inline-block';
+      link.style.marginTop = '12px';
+      link.style.color = '#3367d6';
+      link.style.fontWeight = 'bold';
+      wrap.appendChild(link);
+    }
+  
+    resultBox.appendChild(wrap);
+  }
+  
+  // --- B-イ ---
+  if (B === "B-イ") {
+    createBlock(
+      `お疲れ〜！◯◯最近就活進んでる？
+今自分就活してて、エンカレッジって言うやつで東北大の先輩にサポートしてもらってるんだけど、その先輩がまだエンカレ使ってない人のこともサポートしていきたいらしくて一回話聞いてみて欲しい！その先輩から！↓
+  
+初めまして！エンカレッジというキャリア支援団体でメンターとして活動しております、東北大学の△△と申します！
+夏インターンの結果も出そろい、これからは業界を絞っていくためにも自己分析が課題になってくると思います！今後の人生を左右する期間だと考えており、ぜひそのスタートをサポートできればと思い、この度××さんに協力いただいてご連絡しております！
+是非一度詳細をお話しできればと思いますので少しだけお時間いただきたいです！ご連絡お待ちしております！`,
+      '1x4eDT_RphTdwgAdGFOqtJAzVTXjKDFsE'
+    );
+  }
+  
+  // --- B-ニ / B-ト / B-リ（共通文言） ---
+  const commonSet = {
+    "B-ニ": '1x673toVQgRhwpAXD75ZnyzchqX7mDwFk',
+    "B-ト": '1xOvqFRDrBGZZzn9oAEnKhp4crYO3GZ1j',
+    "B-リ": '1x673toVQgRhwpAXD75ZnyzchqX7mDwFk'
+  };
+  if (Object.keys(commonSet).includes(B)) {
+    createBlock(
+      `お疲れ～！◯◯って就活まだ全然できてないって言ってたっけ？
+自分も今就活してて、エンカレッジっていうところで東北大の1個上の先輩にサポートしてもらってるんだけど、短時間でも効率よく話せてけっこう役立ってるんだよね！
+せっかくだし◯◯も一回だけでも相談してみたらどうかな？その先輩から直接メッセージもらってて、内容はこんな感じ！ ↓
+初めまして！エンカレッジというキャリア支援団体でメンターとして活動しております、東北大学◯年の◯◯と申します。
+私自身も就活を経験してきて、その中で得た情報や工夫を、少しでも後輩のみなさんに還元できればと思い活動しています。
+ぜひ一度だけでもお話できれば嬉しいので、気軽にご連絡いただけると幸いです！`,
+      commonSet[B]
+    );
+  }
+  
+  // --- B-チ ---
+  if (B === "B-チ") {
+    createBlock(
+      `お疲れ～！○○研究室推薦使うんだっけ？？
+  今自分就活してて、エンカレッジって言うやつで東北大のM2の人にサポートしてもらってるんだけど、エンカレッジでサポートしてくれる人の中に研究室推薦を使って就活終えた人がいるらしいから〇〇もその人の話聞いてみたらどうかなって思って連絡してみた！話だけでも聞いてみるのどうかな？？
+  俺の担当してくれている先輩から！↓
+  
+  初めまして！エンカレッジというキャリア支援団体でメンターとして活動しております、東北大学大学院□□研究科M2の△△と申します！
+  あまり知られていませんが、研究室推薦の合格率は高く見積もっても7割程度となっています。せっかく推薦を使うなら100%受かると自信を持って言える万全な状態になってから受けていただきたいと思っております！ぜひその対策のスタートをサポートできればと思い、この度××さんに協力いただいてご連絡しております！
+  是非一度詳細をお話しできればと思いますので少しだけお時間いただきたいです！ご連絡お待ちしております！`,
+      '1gApj-_0h4IpaxtYyx8MhCtgDL96kTbWo'
+    );
+  }
+  
+  
+  // --- B-ヌ / B-ル / B-ヲ ---
+  const highSuccess = ["B-ヌ", "B-ル", "B-ヲ"];
+  if (highSuccess.includes(B)) {
+    createBlock(
+      `お疲れ〜！〇〇結構サマーインターンうまくいってたよね？？
+今自分就活してて、エンカレッジって言うやつで東北大の先輩にサポートしてもらってるんだけど、その先輩がエンカレのサービス向上をしていきたいらしくて、エンカレを使わずに就活うまくいってる人にインタビューしてるらしいんだけど協力してあげてくれないかな？？
+協力してくれると一緒に送った特典から私と〇〇に一つずつ欲しいものをくれるらしいから協力してあげてくれると私も嬉しい！笑
+その先輩から！↓
+  
+初めまして！エンカレッジというキャリア支援団体でメンターとして活動しております、東北大学の△△と申します！
+××さんから〇〇さんの就活がかなりうまくいっているとのお話を聞き、ぜひどのように就活を行っているのかをお聞きしたいと考え、ご連絡をさせていただきました！
+30分~1時間程度でぜひ一度お話を聞かせていただければと思っておりますので、ご協力いただけると大変助かります！ご連絡お待ちしております！`
+    );
+  }
+  function insertCommonPoster(imageId) {
+    const resultBox = document.getElementById('resultText');
+    const wrap = document.createElement('div');
+    wrap.style.marginTop = '24px';
+  
+    const img = document.createElement('img');
+    img.src = `https://drive.google.com/uc?export=view&id=${imageId}`;
+    img.style.width = '100%';
+    img.style.margin = '24px 0';
+    img.style.borderRadius = '12px';
+    img.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
+    wrap.appendChild(img);
+  
+    const link = document.createElement('a');
+    link.href = `https://drive.google.com/uc?export=download&id=${imageId}`;
+    link.textContent = 'ビラ画像（PNG）をダウンロード';
+    link.style.display = 'inline-block';
+    link.style.marginTop = '12px';
+    link.style.color = '#3367d6';
+    link.style.fontWeight = 'bold';
+    wrap.appendChild(link);
+  
+    resultBox.appendChild(wrap);
+    
+  
+  }
+  
+  // ① C-ロが絡む最終結果を除く × 最終結果に「A-イ×B-ハ」が絡む
+  if (C !== "C-ロ" && A === "A-イ" && B === "B-ハ") {
+    createBlock(
+      `お疲れ～！○○って院進するよね？？
+今自分就活してて、東北大の１個上の人にサポートしてもらってるんだけど、院進する理系学部生に向けて3年生の過ごし方とか修士での就活について話してくれるらしい！
+自分は今年から就活始めてみて分からないこと多いし結構大変だから、2年後とかのためにせっかくだから話聞いてみてほしい！その先輩から！↓
+  
+初めまして！エンカレッジというキャリア支援団体でメンターとして活動しております、東北大学大学院□□研究科M2の△△と申します！
+院生から就活を始めると、研究と授業と就活の両立がかなり難しく私自身も苦労しました。理系は学部生と院生で2回も就活のチャンスがあるので、M1で就活を始めるときにスムーズにスタートできるように、ぜひ今年からサポートできればと思い、この度××さんに協力いただいてご連絡しております！
+是非一度詳細をお話しできればと思いますので少しだけお時間いただきたいです！ご連絡お待ちしております！`,
+    '1qqEGCb43kJeO7v9wu5wXMDGl-ySlEO7r'
+    );
+  
+    insertCommonPoster('1HHf7KdlS8_-KcmJs8QRNfQbhC7PCSASp');
+  
+    // 画像表示＆ダウンロード
+    showDriveImageAndDownload('1qqEGCb43kJeO7v9wu5wXMDGl-ySlEO7r', '併用促進ビラ');
+  }
+  
+  if (C !== "C-ロ" && A === "A-ロ" && B === "B-ヘ") {
+    createBlock(
+      `お疲れ～！○○最近就活進んでる？
+今自分就活してて、エンカレッジって言うやつで東北大のM2の人にサポートしてもらってるんだけど、その先輩が周りでまだ始められてない人のこともサポートしてくれるらしくて一回話聞いてみて欲しい！
+その先輩から！↓ 
+      
+初めまして！エンカレッジというキャリア支援団体でメンターとして活動しております、東北大学大学院□□研究科M2の△△と申します！就職活動の早期化に伴い理系院生の就活でも学校推薦や民間就活などにむけ、M1の夏以降の動きがますます重要になってきており、今後の人生を左右する期間だと考えております！ぜひそのスタートをサポートできればと思い、この度××さんに協力いただいてご連絡しております！
+是非一度詳細をお話しできればと思いますので少しだけお時間いただきたいです！ご連絡お待ちしております！`,
+    '1zX4D8NC2SgwzfXqvExKhn84bBqsGJyu4'
+    );
+  
+    insertCommonPoster('1HHf7KdlS8_-KcmJs8QRNfQbhC7PCSASp');
+  
+    // 画像表示＆ダウンロード
+    showDriveImageAndDownload('1zX4D8NC2SgwzfXqvExKhn84bBqsGJyu4', '併用促進ビラ');
+  }
+  
+  if (C !== "C-ロ" && A !== "A-ロ" && B === "B-ヘ") {
+    createBlock(
+      `お疲れ～！○○って就活まだ全然できてないって言ってたっけ？
+自分も今就活してて、エンカレッジっていうところで東北大の1個上の先輩にサポートしてもらってるんだけど、短時間でも効率よく話せてけっこう役立ってるんだよね！せっかくだし○○も一回だけでも相談してみたらどうかな？
+その先輩から直接メッセージもらってて、内容はこんな感じ！ ↓ 
+  
+初めまして！エンカレッジというキャリア支援団体でメンターとして活動しております、東北大学◯年の◯◯と申します。私自身も就活を経験してきて、その中で得た情報や工夫を、少しでも後輩のみなさんに還元できればと思い活動しています。
+ぜひ一度だけでもお話できれば嬉しいですので、気軽にご連絡いただけると幸いです！`,
+    '1xOvqFRDrBGZZzn9oAEnKhp4crYO3GZ1j'
+    );
+  
+    insertCommonPoster('1HHf7KdlS8_-KcmJs8QRNfQbhC7PCSASp');
+  
+    // 画像表示＆ダウンロード
+    showDriveImageAndDownload('1xOvqFRDrBGZZzn9oAEnKhp4crYO3GZ1j', '併用促進ビラ');
+  }
+  
+  if (C !== "C-ロ" && A !== "A-イ" && ((A === "A-ロ" && B === "B-ハ") || (A === "A-ニ" && B === "B-ハ"))) {
+    createBlock(
+      `お疲れ～！○○博士進学考えてたっけ？？
+今自分就活してて、エンカレッジって言うやつで東北大のM2の人にサポートしてもらってるんだけど、その先輩が周りでまだ始められてない人のこともサポートしてくれるらしくて一回話聞いてみて欲しい！
+その先輩から！↓
+  
+初めまして！エンカレッジというキャリア支援団体でメンターとして活動しております、東北大学大学院□□研究科M2の△△と申します！
+博士進学を考える方でも先だって就活の全体像を知り、スケジュール感を把握しておくことで実際に就活を行う際に周囲より早いスタートダッシュを切ることができます！
+全体像把握をするためにも30分程度で一度お話させていただければと思いまして、××さんにご協力いただいてご連絡させていただきました！
+是非一度詳細をお話しできればと思いますので少しだけお時間いただきたいです！ご連絡お待ちしております！
+  `,
+    '1_mJCKBwGYqIzPdemSYQdoxlhpq4rI6ah'
+    );
+  
+    insertCommonPoster('1HHf7KdlS8_-KcmJs8QRNfQbhC7PCSASp');
+  
+    // 画像表示＆ダウンロード
+    showDriveImageAndDownload('1_mJCKBwGYqIzPdemSYQdoxlhpq4rI6ah', '併用促進ビラ');
+  }
+  
+  if (C !== "C-ロ" && B === "B-ロ"){
+    createBlock(
+      `お疲れ〜！○○最近就活進んでる？
+今自分就活してて、エンカレッジって言うやつで東北大の先輩にサポートしてもらってるんだけど、その先輩がまだエンカレ使ってない人のこともサポートしていきたいらしくて一回話聞いてみて欲しい！その先輩から！↓
+  
+初めまして！エンカレッジというキャリア支援団体でメンターとして活動しております、東北大学の△△と申します！
+夏インターンの結果も出そろい、これからは業界を絞っていくためにも自己分析が課題になってくると思います！今後の人生を左右する期間だと考えており、ぜひそのスタートをサポートできればと思い、この度××さんに協力いただいてご連絡しております！
+是非一度詳細をお話しできればと思いますので少しだけお時間いただきたいです！ご連絡お待ちしております！`,
+    '1_mJCKBwGYqIzPdemSYQdoxlhpq4rI6ah'
+    );
+  
+    insertCommonPoster('1HHf7KdlS8_-KcmJs8QRNfQbhC7PCSASp');
+  
+    // 画像表示＆ダウンロード
+    showDriveImageAndDownload('1_mJCKBwGYqIzPdemSYQdoxlhpq4rI6ah', '併用促進ビラ');
+  }
+  
+  if (C !== "C-ロ" && B === "B-ホ"){
+    createBlock(
+      `お疲れ〜！○○最近就活始めたんだよね？
+今自分就活してて、エンカレッジって言うやつで東北大の先輩にサポートしてもらってるんだけど、その先輩がまだエンカレ使ってない人のこともサポートしていきたいらしくて一回話聞いてみて欲しい！秋からの就活の流れとかがしっかり聞けるらしいからぜひ！！
+その先輩から！↓
+  
+初めまして！エンカレッジというキャリア支援団体でメンターとして活動しております、東北大学の△△と申します！
+就活をする上で本選考へと繋がっていく秋・冬の動きは非常に重要なもので、今後の人生を左右する期間だと考えております！私たちとしては、ぜひそのスタートをサポートできればと思い、この度××さんに協力いただいてご連絡させていただきました！
+是非一度詳細をお話しできればと思いますので少しだけお時間いただきたいです！ご連絡お待ちしております！`,
+    '1_mJCKBwGYqIzPdemSYQdoxlhpq4rI6ah'
+    );
+  
+    insertCommonPoster('1HHf7KdlS8_-KcmJs8QRNfQbhC7PCSASp');
+  
+    // 画像表示＆ダウンロード
+    showDriveImageAndDownload('1_mJCKBwGYqIzPdemSYQdoxlhpq4rI6ah', '併用促進ビラ');
+  }
+  
+  insertCommonPoster('1HHf7KdlS8_-KcmJs8QRNfQbhC7PCSASp');
+  }
+  </script>
+<script>
+function saveResultToSheet(userName, finalResult) {
+  const url = 'https://script.google.com/a/macros/en-courage.net/s/AKfycbzXO8eINPNtf4MWJ0WU99k_7JmcMdDDgVDaaC3Ao-t2cuL53DImvFZW8YkqUPWwDLc8Og/exec';
+  const payload = { name: userName, result: finalResult };
+
+  fetch(url, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+    headers: { 'Content-Type': 'application/json' }
+  })
+  .then(res => console.log('送信完了:', res))
+  .catch(err => console.error('エラー:', err));
+}
+</script>
+
+
+</body>
+</html>
